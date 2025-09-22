@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surprise Redirector</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #111;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: linear-gradient(45deg, #ff0066, #ffcc00);
+      color: #111;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    button:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Nyomd meg a gombot és meglátod mi lesz 😈</h1>
+  <button onclick="redirect()">Surprise!</button>
+
+  <script>
+    function redirect() {
+      const urls = [
+        "https://www.wikipedia.org/",
+        "https://www.youtube.com/",
+        "https://www.reddit.com/",
+        "https://www.netflix.com/",
+        "https://www.twitch.tv/"
+      ];
+      const randomUrl = urls[Math.floor(Math.random() * urls.length)];
+      window.location.href = randomUrl;
+    }
+  </script>
+</body>
+</html>
