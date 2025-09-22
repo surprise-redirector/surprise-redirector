@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Surprise Redirector</title>
+  <style>
+    :root{--bg:#0b0f1a;--card:#0f1724;--accent:#06b6d4;--muted:#9aa7b2}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;background:linear-gradient(180deg,#06121a 0%, #07111b 100%);color:#e6eef3}
+    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:32px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:28px;max-width:760px;width:100%;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+    h1{margin:0 0 8px;font-size:28px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+    .bigbtn{display:inline-block;padding:20px 28px;border-radius:12px;background:linear-gradient(90deg,var(--accent),#7c3aed);font-weight:700;font-size:20px;border:none;cursor:pointer}
+    .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+    label{font-size:13px;color:var(--muted)}
+    .small{padding:8px 12px;border-radius:8px;background:#071224;border:1px solid rgba(255,255,255,0.03)}
+    textarea{width:100%;height:110px;margin-top:12px;background:#071224;border:1px solid rgba(255,255,255,0.03);color:#dbeafe;padding:10px;border-radius:8px}
+    .meta{margin-top:12px;color:var(--muted);font-size:13px}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:12px}
+    .ad-slot{margin:14px 0;text-align:center}
+  </style>
+  <!-- Google AdSense (AdClient inserted) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=pub-1997380803593531" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Surprise Redirector</h1>
+      <p class="lead">Nyomd meg a gombot és egy véletlenszerű weboldal nyílik meg. Használj <strong>Safe Mode</strong>-ot, ha nem akarsz kényes tartalmat.</p>
+
+      <!-- Top ad slot -->
+      <div class="ad-slot">
+        <!-- AdSense banner: replace data-ad-slot with the one from your AdSense account -->
+        <ins class="adsbygoogle"
+             style="display:block;max-width:728px;margin:0 auto"
+             data-ad-client="pub-1997380803593531"
+             data-ad-slot="1234567890"
+             data-ad-format="auto"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </div>
+
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+        <button id="surprise" class="bigbtn">SURPRISE ME</button>
+        <div style="display:flex;flex-direction:column">
+          <label class="pill"> <input type="checkbox" id="safeMode" checked> Safe Mode (SFW)</label>
+          <label style="margin-top:8px" class="pill"> <input type="checkbox" id="ageConfirm"> I confirm I'm 18+</label>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="randomizeList" class="small">Újratölt véletlen listát</button>
+        <button id="copyShare" class="small">Link másolása (shareable)</button>
+        <button id="openStats" class="small">Statok megtekintése</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>Testreszabott URL lista (egy sor = egy URL):</label>
+        <textarea id="customList" placeholder="https://example.com
+https://restaurant.example.com"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="saveList" class="small">Mentés</button>
+          <button id="resetList" class="small">Alapértelmezett visszaállítása</button>
+        </div>
+      </div>
+
+      <div class="meta">Megjegyzés: Ne adj meg illegális, kártékony vagy phishing oldalt. Ez egy demonstráció — te vagy a felelős a tartalomért.</div>
+
+      <!-- Bottom ad slot -->
+      <div class="ad-slot">
+        <ins class="adsbygoogle"
+             style="display:block;max-width:728px;margin:0 auto"
+             data-ad-client="pub-1997380803593531"
+             data-ad-slot="0987654321"
+             data-ad-format="auto"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </div>
+
+      <footer>Host: egyszerű GitHub Pages vagy Netlify működik. Monetizáció: TikTok / Instagram videók + AdSense vagy affiliate linkek.</footer>
+    </div>
+  </div>
+
+  <script>
+    // --- KONFIG ---
+    const sfwSites = [
+      'https://en.wikipedia.org/wiki/Special:Random',
+      'https://www.boredpanda.com/',
+      'https://www.openstreetmap.org',
+      'https://www.timeout.com',
+      'https://www.nationalgeographic.com',
+      'https://www.atlasobscura.com',
+      'https://www.foodnetwork.com',
+      'https://www.imdb.com',
+      'https://xkcd.com/',
+      'https://www.reddit.com/r/oddlyinteresting'
+    ];
+
+    // Wild list is empty by default. Users can paste their own URLs into the textarea.
+    const defaultCustom = ['https://www.pokernews.com','https://opentable.com','https://spotify.com','https://youtube.com'];
+
+    // Small blocklist to avoid opening clearly malicious-sounding urls by accident
+    const simpleBlocklist = ['malware','phishing','exploit','torrent','.onion'];
+
+    // --- STATE ---
+    const surprise = document.getElementById('surprise');
+    const safeMode = document.getElementById('safeMode');
+    const ageConfirm = document.getElementById('ageConfirm');
+    const customList = document.getElementById('customList');
+    const saveList = document.getElementById('saveList');
+    const resetList = document.getElementById('resetList');
+    const randomizeList = document.getElementById('randomizeList');
+    const copyShare = document.getElementById('copyShare');
+    const openStats = document.getElementById('openStats');
+
+    // Load saved custom list
+    function loadCustom(){
+      const s = localStorage.getItem('surprise_custom');
+      if(s){ customList.value = s; }
+      else{ customList.value = defaultCustom.join('
+'); }
+    }
+    loadCustom();
+
+    function saveCustom(){
+      localStorage.setItem('surprise_custom', customList.value.trim());
+      alert('Mentve.');
+    }
+
+    saveList.addEventListener('click', saveCustom);
+    resetList.addEventListener('click', ()=>{ localStorage.removeItem('surprise_custom'); loadCustom(); alert('Visszaállítva.'); });
+
+    function parseCustom(){
+      return customList.value.split(/
++/).map(s=>s.trim()).filter(Boolean);
+    }
+
+    function blocked(url){
+      return simpleBlocklist.some(b => url.toLowerCase().includes(b));
+    }
+
+    function getRandomFrom(arr){
+      return arr[Math.floor(Math.random()*arr.length)];
+    }
+
+    function getCandidateList(){
+      const custom = parseCustom();
+      let combined = [];
+      if(safeMode.checked){ combined = sfwSites.concat(custom); }
+      else { combined = sfwSites.concat(custom); }
+      // shuffle
+      for(let i=combined.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [combined[i],combined[j]]=[combined[j],combined[i]] }
+      return combined.filter(u=>!blocked(u));
+    }
+
+    surprise.addEventListener('click', ()=>{
+      if(!ageConfirm.checked){ alert('Kérlek erősítsd meg, hogy 18+ vagy.'); return; }
+      const list = getCandidateList();
+      if(list.length===0){ alert('A listád üres vagy minden URL blokkolva van. Add meg az URL-eket a textarea-ban.'); return; }
+      const pick = getRandomFrom(list);
+      // Open in new tab
+      try{
+        window.open(pick, '_blank', 'noopener');
+        // update simple stat
+        const s = JSON.parse(localStorage.getItem('surprise_stats')||'{}');
+        s.total = (s.total||0)+1;
+        s.last = pick;
+        localStorage.setItem('surprise_stats', JSON.stringify(s));
+      }catch(e){ alert('Nem sikerült megnyitni. Ellenőrizd az URL formátumát.'); }
+    });
+
+    randomizeList.addEventListener('click', ()=>{
+      // replace custom list with a few random SFW picks to spice it up
+      const picks = [];
+      const pool = sfwSites.slice();
+      for(let i=0;i<6;i++){ picks.push(getRandomFrom(pool)); }
+      customList.value = picks.join('
+');
+      saveCustom();
+    });
+
+    copyShare.addEventListener('click', ()=>{
+      const state = {safe: safeMode.checked, custom: parseCustom(), ts: Date.now()};
+      // we'll just copy a short JSON to clipboard so user can share their config
+      navigator.clipboard.writeText(JSON.stringify(state)).then(()=>{ alert('Konfiguráció kimásolva a vágólapra.'); }).catch(()=>{ alert('Másolás sikertelen.'); });
+    });
+
+    openStats.addEventListener('click', ()=>{
+      const s = JSON.parse(localStorage.getItem('surprise_stats')||'{}');
+      alert('Totál kattintás: ' + (s.total||0) + '
+Utolsó: ' + (s.last||'nincs'));
+    });
+
+    // On first load, show a tiny explainer
+    if(!localStorage.getItem('surprise_welcome')){
+      localStorage.setItem('surprise_welcome','1');
+      setTimeout(()=>{ alert('Üdv! Állítsd be a listát, kapcsolj be Safe Mode-ot ha azt szeretnéd, majd nyomd a SURPRISE ME gombot.'); },400);
+    }
+  </script>
+</body>
+</html>
